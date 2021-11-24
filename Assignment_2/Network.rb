@@ -51,12 +51,9 @@ class Network
             reportfile.puts "\n\n\nFOR GENE #{gene}:"
             reportfile.puts "\n1. Direct interactions:"
             interactiondict.fetch(gene).each {|inter|
-                reportfile.puts inter unless inter.class == Array
-                if inter.class == Array
-                    reportfile.puts "\n2. Indirect interactions (GENES FROM LIST):"
-                    puts inter
-                end
-                }
+                reportfile.puts inter unless inter.class == Array}
+            reportfile.puts "\n2. Indirect interactions (GENES FROM LIST):"
+            reportfile.puts interactiondict.fetch(gene).last if interactiondict.fetch(gene).last.kind_of?(Array) == true
             reportfile.puts "\n3.1. KEGG annotations:"
             keggdict.fetch(gene).each {|k,v|
                 reportfile.puts "KEGG id: #{k}, KEGG pathway: #{v}"}
