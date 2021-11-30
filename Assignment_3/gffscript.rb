@@ -7,11 +7,6 @@ gene_lines = gene_names.readlines()
 
 gendict = Hash.new # HASH WHERE WE'LL STORE GENE INFORMATION
 
-#a = "AT3g16140"
-#b= "AT4g12310"
-#c = "AT5g01530"
-#d = "AT5g58260"
-#list = [a,b,c,d]
 # FUNCTION TO CONNECT TO DATABASE
 def fetch(url, headers = {accept: "*/*"}, user = "", pass="") 
   response = RestClient::Request.execute({
@@ -21,7 +16,6 @@ def fetch(url, headers = {accept: "*/*"}, user = "", pass="")
     password: pass,
     headers: headers})
   return response
-  
   rescue RestClient::ExceptionWithResponse => e
     $stderr.puts e.inspect
     response = false
@@ -86,10 +80,7 @@ gene_lines.each {|line|
   gl = line.strip()
   gen_id,embl = exam_sequences(gl)
   gendict[gen_id]=embl}
-#list.each {|gl|
- # gen_id,embl= exam_sequences(gl)
-  #  gendict[gen_id]=embl
-   # }
+
 # TRANSFORMING GENE SEQUENCES INTO EXONS AND SCANNING EXON SEQUENCES LOOKING FOR CTTCTT REPEATS 
 puts "SEARCHING FOR CTTCTT REPEATS..."
 norepfilelist = Array.new 
@@ -105,47 +96,31 @@ norepfilelist = Array.new
           exonseq = seq.subseq(ini,fin) # CUT SEQUENCE INTO EXON
           unless match_seq(exonseq).nil? # IF CTTCTT REPEATS ARE FOUND
             note = feature.assoc.values[0] 
-            posit = match_seq(exonseq) # Look for the "cttctt" sequence in the exon of the forward strand
+            posit = match_seq(exonseq) # FUNCTION RETRIEVING LIST WITH START::END COORDINATES IN EXON OF REPETITIONS CTTCTT
             posit.each {|stenpair|
-              puts id
-              puts embl.sv()
-              puts "-------forw"
-              start = stenpair.split("::")[0]
-              ending = stenpair.split("::")[1]
-              genst = embl.sv().split(":")[3].to_i + start.to_i
-              #genen = genst + 5
-              genen = embl.sv().split(":")[3].to_i + ending.to_i
-              puts start
-              puts ending
-              puts genst
-              puts genen
-              newf = new_feature(start,ending,embl.sv().split(":")[2],genst,genen,"+",note)
-              embl.features << newf}
+              start = stenpair.split("::")[0] # STORING START OF REP IN EXON
+              ending = stenpair.split("::")[1] # STORING END OF REP IN REGION
+              genst = embl.sv().split(":")[3].to_i + start.to_i # STORING START OF REP IN CHROM
+              genen = embl.sv().split(":")[3].to_i + ending.to_i # STORING END OF REP IN CHROM
+              newf = new_feature(start,ending,embl.sv().split(":")[2],genst,genen,"+",note) # ADDING FEATURE WITH DATA
+              embl.features << newf # INCLUDING NEW FEATURE
+              }
           else
             norepfilelist << id unless norepfilelist.include?(id)
           end
-      elsif feature.locations.to_s.match(rev) # For exons in the reverse strand
-          ini = feature.locations.to_s.split("(")[1].split("..")[0].to_i 
-          fin = feature.locations.to_s.split("(")[1].split("..")[1].to_i
+      elsif feature.locations.to_s.match(rev) # FOR EXONS IN THE REVERSE STRAND
+          ini = feature.locations.to_s.split("(")[1].split("..")[0].to_i
+          fin = feature.locations.to_s.split("(")[1].split("..")[1].to_i 
           seq = seq.reverse_complement
           exonseq = seq.subseq(ini,fin)
           unless match_seq(exonseq).nil?
             note = feature.assoc.values[0]
             posit = match_seq(exonseq)
             posit.each {|stenpair|
-              puts id
-              puts embl.sv()
               start = stenpair.split("::")[0]
-              puts "-----complem"
-              puts start
               ending = stenpair.split("::")[1]
-              puts ending
               genst = embl.sv().split(":")[3].to_i + start.to_i
-              puts genst
-              #genen = genst - 5
-              #puts genen
               genen = embl.sv().split(":")[3].to_i + ending.to_i
-              puts genen
               newf = new_feature(start,ending,embl.sv().split(":")[2],genst,genen,"-",note)
               embl.features << newf}
           else
